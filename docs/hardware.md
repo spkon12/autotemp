@@ -35,4 +35,4 @@ DS18B20 devices found: 2
   [1] 28FFABCDEF012345
 ```
 
-Copy these IDs into `config/node.example.json` labels if you want a human-readable map.
+Copy these IDs into `sensors.json` on the TP520 to assign friendly names (see [deployment.md](deployment.md)).

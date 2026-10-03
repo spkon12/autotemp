@@ -1,0 +1,19 @@
+[Unit]
+Description=autotemp temperature receiver
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/esp32-temperature-search/server
+Environment=AUTOTEMP_HOST=0.0.0.0
+Environment=AUTOTEMP_PORT=8080
+Environment=AUTOTEMP_DB_PATH=%h/services/autotemp-data/readings.db
+Environment=AUTOTEMP_SENSORS_PATH=%h/services/autotemp-data/sensors.json
+Environment=AUTOTEMP_LOG_LEVEL=INFO
+ExecStart=%h/esp32-temperature-search/server/.venv/bin/python app.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

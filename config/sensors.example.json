@@ -1,0 +1,13 @@
+{
+  "nodes": {
+    "lab-node-1": {
+      "description": "Bench ESP32 on GPIO 4 1-Wire bus",
+      "sensors": {
+        "28BE5D210000008C": {
+          "label": "bench-probe",
+          "location": "workbench"
+        }
+      }
+    }
+  }
+}

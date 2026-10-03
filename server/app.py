@@ -3,14 +3,15 @@ from typing import Any
 
 from flask import Flask, jsonify, request
 
-from config import DB_PATH, HOST, LOG_LEVEL, PORT
+import config
 from db import init_db, insert_readings, recent_readings
+from sensors import enrich_reading, load_sensor_registry
 
-logging.basicConfig(level=getattr(logging, LOG_LEVEL.upper(), logging.INFO))
+logging.basicConfig(level=getattr(logging, config.LOG_LEVEL.upper(), logging.INFO))
 log = logging.getLogger("autotemp")
 
 app = Flask(__name__)
-init_db(DB_PATH)
+init_db(config.DB_PATH)
 
 
 def _validate_payload(data: dict[str, Any]) -> tuple[str, list[dict[str, Any]]]:
@@ -60,7 +61,7 @@ def post_readings():
 
     try:
         node_id, readings = _validate_payload(data)
-        count = insert_readings(DB_PATH, node_id, readings)
+        count = insert_readings(config.DB_PATH, node_id, readings)
     except ValueError as exc:
         log.warning("Rejected payload: %s", exc)
         return jsonify({"error": str(exc)}), 400
@@ -76,7 +77,14 @@ def post_readings():
 def get_recent():
     limit = request.args.get("limit", default=50, type=int)
     limit = max(1, min(limit, 500))
-    return jsonify({"readings": recent_readings(DB_PATH, limit=limit)})
+    registry = load_sensor_registry(config.SENSORS_PATH)
+    rows = [enrich_reading(row, registry) for row in recent_readings(config.DB_PATH, limit=limit)]
+    return jsonify({"readings": rows})
+
+
+@app.get("/api/v1/sensors")
+def get_sensors():
+    return jsonify(load_sensor_registry(config.SENSORS_PATH))
 
 
 @app.get("/")
@@ -84,10 +92,17 @@ def index():
     return (
         "<h1>autotemp receiver</h1>"
         "<p><a href='/api/v1/readings/recent'>Recent readings (JSON)</a></p>"
+        "<p><a href='/api/v1/sensors'>Sensor registry (JSON)</a></p>"
         "<p>POST readings to <code>/api/v1/readings</code></p>"
     )
 
 
 if __name__ == "__main__":
-    log.info("Starting autotemp receiver on %s:%s db=%s", HOST, PORT, DB_PATH)
-    app.run(host=HOST, port=PORT)
+    log.info(
+        "Starting autotemp receiver on %s:%s db=%s sensors=%s",
+        config.HOST,
+        config.PORT,
+        config.DB_PATH,
+        config.SENSORS_PATH,
+    )
+    app.run(host=config.HOST, port=config.PORT)

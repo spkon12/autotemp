@@ -81,5 +81,8 @@ Desktop.ini
 firmware/autotemp/main/secrets.h
 server/.env
 server/.venv/
+server/__pycache__/
+tests/__pycache__/
 **/readings.db
+**/sensors.json
 services/autotemp-data/
