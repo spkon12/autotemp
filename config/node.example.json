@@ -1,0 +1,13 @@
+{
+  "node_id": "lab-node-1",
+  "description": "Bench ESP32 on GPIO 4 1-Wire bus",
+  "gpio_data": 4,
+  "read_interval_ms": 10000,
+  "sensors": [
+    {
+      "sensor_id": "28FF1234567890AB",
+      "label": "ambient",
+      "location": "bench"
+    }
+  ]
+}
