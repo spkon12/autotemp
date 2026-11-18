@@ -1,4 +1,5 @@
 import logging
+import math
 from typing import Any
 
 from flask import Flask, jsonify, request
@@ -43,7 +44,13 @@ def _validate_payload(data: dict[str, Any]) -> tuple[str, list[dict[str, Any]]]:
             raise ValueError("each reading requires sensor_id")
         if temperature_c is None:
             raise ValueError("each reading requires temperature_c")
-        cleaned.append({"sensor_id": sensor_id, "temperature_c": float(temperature_c)})
+        try:
+            value = float(temperature_c)
+        except (TypeError, ValueError, OverflowError) as exc:
+            raise ValueError("temperature_c must be a finite number") from exc
+        if not math.isfinite(value):
+            raise ValueError("temperature_c must be a finite number")
+        cleaned.append({"sensor_id": sensor_id, "temperature_c": value})
 
     return node_id, cleaned
 
