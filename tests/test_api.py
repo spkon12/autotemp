@@ -95,5 +95,22 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(row["location"], "shelf")
 
 
+    def test_rejects_invalid_temperatures_without_storing_any_batch_rows(self):
+        invalid_values = ["not-a-number", "NaN", "Infinity", "-Infinity", True, {}, []]
+        for invalid in invalid_values:
+            with self.subTest(value=invalid):
+                payload = {
+                    "node_id": "test-node",
+                    "readings": [
+                        {"sensor_id": "valid-probe", "temperature_c": 20.0},
+                        {"sensor_id": "bad-probe", "temperature_c": invalid},
+                    ],
+                }
+                response = self.client.post("/api/v1/readings", json=payload)
+                self.assertEqual(response.status_code, 400)
+                self.assertIn("finite number", response.get_json()["error"])
+                recent = self.client.get("/api/v1/readings/recent")
+                self.assertEqual(recent.get_json()["readings"], [])
+
 if __name__ == "__main__":
     unittest.main()
